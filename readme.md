@@ -59,6 +59,8 @@ Actual traffic is handled by WireGuard.
 
 ## Controller
 
+
+
 Runs on Linux VPS.
 
 Responsibilities:
@@ -230,6 +232,7 @@ The agent applies the required peer configuration.
 
 ---
 
+
 # Installation
 
 ## Requirements
@@ -342,6 +345,471 @@ This project contains two main components:
 
 
 ---
+# Controller Commands Reference
+
+The WireGuard Dynamic Gateway Controller provides a simple TCP JSON API for managing nodes, gateways, clients, and peer synchronization.
+
+Default API port:
+
+```
+9000
+```
+
+All commands can be tested locally on the controller server:
+
+```bash
+echo '{"cmd":"COMMAND"}' | nc 127.0.0.1 9000
+```
+
+---
+
+# 1. Check Controller Status
+
+Check if the controller is running:
+
+```bash
+echo '{"cmd":"health"}' | nc 127.0.0.1 9000
+```
+
+Example response:
+
+```json
+{
+    "status":"ok"
+}
+```
+
+---
+
+# 2. View All Registered Nodes
+
+Display all nodes stored in the controller database:
+
+```bash
+echo '{"cmd":"nodes"}' | nc 127.0.0.1 9000
+```
+
+The response includes:
+
+- WireGuard IP
+- Node role
+- Gateway relationship
+- Public key
+- Endpoint
+- Last handshake status
+
+Example:
+
+```json
+{
+    "nodes": [
+        {
+            "wg_ip":"100.100.100.100",
+            "role":"gateway"
+        },
+        {
+            "wg_ip":"100.100.100.5",
+            "role":"client",
+            "gateway_ip":"100.100.100.100"
+        }
+    ]
+}
+```
+
+---
+
+# 3. Register Gateway Node
+
+Register a gateway manually.
+
+Example:
+
+```bash
+echo '
+{
+    "cmd":"register",
+    "wg_ip":"100.100.100.100",
+    "role":"gateway"
+}
+' | nc 127.0.0.1 9000
+```
+
+Gateway nodes provide:
+
+- NAT forwarding
+- Internet access
+- Peer routing
+- Client connectivity
+
+Example:
+
+```
+Gateway
+100.100.100.100
+```
+
+---
+
+# 4. Register Client Node
+
+Register a client and assign it to a gateway.
+
+Example:
+
+```bash
+echo '
+{
+    "cmd":"register",
+    "wg_ip":"100.100.100.5",
+    "role":"client",
+    "gateway_ip":"100.100.100.100"
+}
+' | nc 127.0.0.1 9000
+```
+
+Relationship:
+
+```
+Client
+100.100.100.5
+
+        |
+        |
+
+Gateway
+100.100.100.100
+```
+
+---
+
+# 5. Change Gateway for Client
+
+Move an existing client to another gateway.
+
+Example:
+
+```bash
+echo '
+{
+    "cmd":"register",
+    "wg_ip":"100.100.100.5",
+    "role":"client",
+    "gateway_ip":"100.100.100.2"
+}
+' | nc 127.0.0.1 9000
+```
+
+The controller updates the client gateway relationship.
+
+The gateway agent will apply the new peer configuration during the next synchronization cycle.
+
+---
+
+# 6. Get Client Synchronization Data
+
+Generate peer information required by a client:
+
+```bash
+echo '
+{
+    "cmd":"sync",
+    "wg_ip":"100.100.100.5"
+}
+' | nc 127.0.0.1 9000
+```
+
+Returns:
+
+- Required peers
+- Allowed IPs
+- Endpoint information
+- Gateway information
+
+---
+
+# 7. Gateway Peer Synchronization
+
+Gateway agents use this command to retrieve required peers.
+
+Example:
+
+```bash
+echo '
+{
+    "cmd":"gateway_sync",
+    "wg_ip":"100.100.100.100"
+}
+' | nc 127.0.0.1 9000
+```
+
+Example response:
+
+```json
+{
+    "status":"build",
+    "role":"gateway",
+    "wg_ip":"100.100.100.100",
+    "peers":[
+        {
+            "public_key":"CLIENT_PUBLIC_KEY",
+            "allowed_ips":"100.100.100.5/32",
+            "endpoint":"CLIENT_ENDPOINT"
+        }
+    ]
+}
+```
+
+The agent applies these peer entries automatically.
+
+---
+
+# 8. Test Adding a New Client
+
+Complete workflow test:
+
+Register a new client:
+
+```bash
+echo '
+{
+    "cmd":"register",
+    "wg_ip":"100.100.100.7",
+    "role":"client",
+    "gateway_ip":"100.100.100.100"
+}
+' | nc 127.0.0.1 9000
+```
+
+Workflow:
+
+```
+New Client
+     |
+     |
+     v
+
+Controller Register
+
+     |
+     |
+     v
+
+Node Database Update
+
+     |
+     |
+     v
+
+Gateway gateway_sync
+
+     |
+     |
+     v
+
+Gateway Agent Applies Peer
+
+     |
+     |
+     v
+
+Client Ready
+```
+
+---
+
+# Recommended Testing Sequence
+
+## Step 1 - Start Controller
+
+```bash
+python3 server.py
+```
+
+---
+
+## Step 2 - Check Health
+
+```bash
+echo '{"cmd":"health"}' | nc 127.0.0.1 9000
+```
+
+---
+
+## Step 3 - Register Gateway
+
+Example:
+
+```
+100.100.100.100
+```
+
+Command:
+
+```bash
+echo '
+{
+    "cmd":"register",
+    "wg_ip":"100.100.100.100",
+    "role":"gateway"
+}
+' | nc 127.0.0.1 9000
+```
+
+---
+
+## Step 4 - Register Client
+
+Example:
+
+```
+100.100.100.5
+```
+
+Command:
+
+```bash
+echo '
+{
+    "cmd":"register",
+    "wg_ip":"100.100.100.5",
+    "role":"client",
+    "gateway_ip":"100.100.100.100"
+}
+' | nc 127.0.0.1 9000
+```
+
+---
+
+## Step 5 - Verify Nodes
+
+```bash
+echo '{"cmd":"nodes"}' | nc 127.0.0.1 9000
+```
+
+---
+
+## Step 6 - Sync Gateway
+
+```bash
+echo '
+{
+    "cmd":"gateway_sync",
+    "wg_ip":"100.100.100.100"
+}
+' | nc 127.0.0.1 9000
+```
+
+---
+
+## Step 7 - Test Connectivity
+
+From client:
+
+```bash
+ping 100.100.100.100
+```
+
+Test another client:
+
+```bash
+ping 100.100.100.x
+```
+
+---
+
+# Deployment Example
+
+Example network:
+
+```
+Controller VPS
+
+100.100.100.1
+
+
+        |
+        |
+        v
+
+
+NAS Gateway
+
+100.100.100.100
+
+
+        |
+        |
+        +-------------+
+        |             |
+        v             v
+
+Client .5        Client .6
+```
+
+---
+
+# Security Notes
+
+Before publishing:
+
+Remove:
+
+```
+config.json
+nodes.json
+server.log
+agent.log
+private keys
+real endpoints
+public IP addresses
+```
+
+Never upload:
+
+```
+PrivateKey=
+```
+
+WireGuard private keys.
+
+Use example files:
+
+```
+config.example.json
+nodes.example.json
+```
+
+---
+
+# Project Status
+
+Current version:
+
+```
+Experimental Release
+```
+
+Tested:
+
+- VPS Controller
+- Synology NAS Gateway
+- Ubuntu Gateway
+- WireGuard wg5 interface
+- NAT Gateway
+- Automatic Peer Synchronization
+- Remote RDP Access
+
+---
+
+# Agent Documentation
+
+For gateway/client agent installation and configuration:
+
+See:
+
+```
+../agent/README.md
+```
 
 # Components
 
