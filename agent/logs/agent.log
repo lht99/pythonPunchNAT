@@ -1,1 +1,24 @@
+2026-09-05 22:14:57 START
+2026-09-05 22:14:57 WG5 NOT READY
+2026-09-05 22:15:39 START
+2026-09-05 22:15:39 WG5 OK
+2026-09-05 22:16:15 START
+2026-09-05 22:16:15 WG5 OK
+2026-09-05 22:18:47 START
+2026-09-05 22:18:47 WG5 NOT READY
+2026-09-05 22:20:16 START
+2026-09-05 22:20:16 WG5 OK
+2026-09-05 22:22:03 NAS GATEWAY AGENT START
+2026-09-05 22:22:03 CHECK WG wg5
+2026-09-05 22:22:03 interface: wg5
+  public key: hide
+  private key: (hidden)
+  listening port: 9001
+
+peer: MOXZ/+4QWpSBurarkBFNuwjus8S2XnVwMQishN5fbx8=
+  endpoint: 138.2.25.223:51820
+  allowed ips: 100.100.100.0/24
+  latest handshake: 1 minute, 2 seconds ago
+  transfer: 460 B received, 1.69 KiB sent
+  persistent keepalive: every 21 seconds
 
