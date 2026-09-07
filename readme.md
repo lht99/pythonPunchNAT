@@ -331,6 +331,35 @@ WireGuard private keys.
 
 ---
 
+# WireGuard Dynamic Gateway Controller
+
+A self-hosted WireGuard controller and gateway synchronization system.
+
+This project contains two main components:
+
+- Controller
+- Agent
+
+
+---
+
+# Components
+
+
+## 1. Controller
+
+The controller manages:
+
+- Node registration
+- Peer registry
+- Gateway synchronization
+- WireGuard topology
+- Health status
+
+
+Location:
+
+
 # Roadmap
 
 Future development:
