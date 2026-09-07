@@ -1,17 +1,17 @@
 #!/bin/sh
 
-APP_DIR="/opt/agent"
-
-echo "Install WireGuard Agent"
+echo "Install NAS Gateway Agent"
 
 
-mkdir -p $APP_DIR/logs
+BASE="$(cd "$(dirname "$0")" && pwd)"
 
 
-chmod +x $APP_DIR/wg_agent.py
+mkdir -p "$BASE/logs"
+
+
+chmod +x "$BASE/nas_agent.py"
 
 
 echo "Agent installed"
-
-echo "Config:"
-echo "$APP_DIR/config.json"
+echo "Location:"
+echo "$BASE"
