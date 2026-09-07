@@ -1,13 +1,17 @@
 #!/bin/sh
 
+APP_DIR="/opt/agent"
 
-echo "Install NAS Gateway Agent"
-
-
-mkdir -p /volume1/docker/agent/logs
+echo "Install WireGuard Agent"
 
 
-chmod +x /volume1/docker/agent/nas_agent.py
+mkdir -p $APP_DIR/logs
 
 
-echo "Done"
+chmod +x $APP_DIR/wg_agent.py
+
+
+echo "Agent installed"
+
+echo "Config:"
+echo "$APP_DIR/config.json"
