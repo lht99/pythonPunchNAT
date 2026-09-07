@@ -7,11 +7,20 @@ import time
 import os
 
 
-BASE = "/volume1/docker/agent"
+BASE = os.path.dirname(
+    os.path.abspath(__file__)
+)
 
-CONFIG = BASE + "/config.json"
+CONFIG = os.path.join(
+    BASE,
+    "config.json"
+)
 
-LOG = BASE + "/logs/agent.log"
+LOG = os.path.join(
+    BASE,
+    "logs",
+    "agent.log"
+)
 
 
 
