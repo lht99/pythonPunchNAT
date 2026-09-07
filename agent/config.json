@@ -1,0 +1,9 @@
+{
+    "controller":"Your_server_IP",
+    "port":9000,#Port to contact with server.py
+    "wg_ip":"100.100.100.100",#your NAS IP
+    "role":"gateway",
+    "interface":"wg5",
+    "wan_interface":"auto",
+    "apply_nat":true
+}
